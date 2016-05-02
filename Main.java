@@ -511,7 +511,6 @@ public class Main extends Application implements Serializable {
     //Import CSV File to Table
     
 	public void importList() throws Exception {
-		ObservableList<Event> inList = FXCollections.observableArrayList();
 		String fileName = "EventList.csv";
 		String text = "";
 		FileReader fileReader = null;
