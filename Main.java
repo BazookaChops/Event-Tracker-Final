@@ -36,6 +36,7 @@ import java.io.Serializable;
 import javafx.util.Callback;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.time.LocalDate;
 import javafx.scene.image.Image;
@@ -99,14 +100,29 @@ public class Main extends Application implements Serializable {
             @Override
             public void handle(ActionEvent e)  {
               try {
-                writeExcel();
+            	  exportList();
               }
               catch (Exception ex) {
             ex.printStackTrace();
         }
     }          
-});		fileMenu.getItems().add(exportFile);
-        fileMenu.getItems().add(new MenuItem("Import..."));
+});		
+        fileMenu.getItems().add(exportFile);
+        
+        MenuItem importFile = new MenuItem("Import...");
+        importFile.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent e)  {
+              try {
+            	  importList();
+              }
+              catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }          
+});
+        fileMenu.getItems().add(importFile);
+        
         fileMenu.getItems().add(new SeparatorMenuItem());
         fileMenu.getItems().add(new MenuItem("Exit"));
         
@@ -211,6 +227,11 @@ public class Main extends Application implements Serializable {
         
         //Invalid input alerts
         
+        Alert amountAlert = new Alert(AlertType.ERROR);
+        amountAlert.setTitle("Invalid Input");
+        amountAlert.setHeaderText("Error");
+        amountAlert.setContentText("Please enter a positive number");
+        
         Alert timeAlert = new Alert(AlertType.ERROR);
         timeAlert.setTitle("Invalid Input");
         timeAlert.setHeaderText("Error");
@@ -228,10 +249,9 @@ public class Main extends Application implements Serializable {
         amountInput.setDisable(true);
         amountInput.focusedProperty().addListener((arg0, oldValue, newValue) -> {
             if (!newValue) { 
-                    if (!amountInput.getText().matches("[0-9](\\.[0-9]{1,2}){0,1}|10(\\.0{1,2}){0,1}")) {
-                        
+                    if (!amountInput.getText().matches("(?!=\\d-\\.)([\\d\\.]+)") && !amountInput.getText().matches("")) {                     
                     	amountInput.setText("");
-                    	
+                    	amountAlert.showAndWait();
                     }
                 }
             });
@@ -288,7 +308,7 @@ public class Main extends Application implements Serializable {
         
         //Buttons
         Button addButton = new Button("Add Event");
-        addButton.setOnAction(e -> addButtonClicked(totalEventsText));
+        addButton.setOnAction(e -> addButtonClicked());
         addButton.setDisable(true);
        
         Button deleteButton = new Button("Delete Event");
@@ -339,7 +359,7 @@ public class Main extends Application implements Serializable {
     }
     
     //Add button clicked
-    public void addButtonClicked(Text totalEventsText){
+    public void addButtonClicked(){
     	Event newEvent = new DrinkEvent();
     	newEvent.setType(type);
     	System.out.println(newEvent.getType());
@@ -347,6 +367,21 @@ public class Main extends Application implements Serializable {
     		amount = 0;
     	} else {
     		amount = Double.parseDouble(amountInput.getText());
+    	}
+    	if (timeInput.getText().isEmpty()) {
+    		time = " ";
+    	} else {
+    		time = timeInput.getText();
+    	}
+    	if (dateInput.getText().isEmpty()) {
+    		date = " ";
+    	} else {
+    		date = dateInput.getText();
+    	}
+    	if (descInput.getText().isEmpty()) {
+    		desc = "";
+    	} else {
+    		desc = descInput.getText();
     	}
     	if (newEvent.getType() == "Drink") {
     		totalDrinkEvents += 1;
@@ -368,8 +403,8 @@ public class Main extends Application implements Serializable {
     				
     	}
         newEvent.setAmount(amount);
-        newEvent.setDate(dateInput.getText());
-        newEvent.setDesc(descInput.getText());
+        newEvent.setDate(date);
+        newEvent.setDesc(desc);
         table.getItems().add(newEvent);
         totalEvents += 1;
     }
@@ -448,19 +483,19 @@ public class Main extends Application implements Serializable {
     	totalExerciseEvents = 0;
     	totalSleepEvents = 0;
     }
-    public ObservableList<Event> data = FXCollections.observableArrayList();
     
-    //Persistence method (WIP)
+    ////Persistence methods
+    //Export CSV File to Table
     
-    public void writeExcel() throws Exception {
+    public void exportList() throws Exception {
+    	
         Writer writer = null;
         try {
             File file = new File("EventList.csv");
             writer = new BufferedWriter(new FileWriter(file));
-            for (Event outEvent : data) {
+            for (Event outEvent : table.getItems()) {
 
-                String text = outEvent.getType() + "," + outEvent.getAmount() + "," + outEvent.getTime() + "\n";
-                System.out.println("printed");
+                String text = outEvent.getType() + "," + outEvent.getAmount() + "," + outEvent.getTime() + "," + outEvent.getDate() + "," + outEvent.getDesc() + "," + "\n";
                 writer.write(text);
             }
         } catch (Exception ex) {
@@ -472,6 +507,44 @@ public class Main extends Application implements Serializable {
              writer.close();
         } 
     }
+    
+    //Import CSV File to Table
+    
+	public void importList() throws Exception {
+		ObservableList<Event> inList = FXCollections.observableArrayList();
+		String fileName = "EventList.csv";
+		String text = "";
+		FileReader fileReader = null;
+		
+			try {		
+				fileReader = new FileReader(fileName);
+				BufferedReader reader = new BufferedReader(fileReader);
+				while ((text = reader.readLine()) != null) {
+					String[] data = text.split(",");
+					Event newEvent = new DrinkEvent();
+					newEvent.setType(data[0]);
+					newEvent.setAmount(Double.parseDouble(data[1]));
+					newEvent.setTime(data[2]);
+					newEvent.setDate(data[3]);
+					newEvent.setDesc(data[4]);
+					table.getItems().add(newEvent);
+				}
+				
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			} finally {
+				if (fileReader != null) {
+					try {
+						fileReader.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+	}		
 }
+
    
    
