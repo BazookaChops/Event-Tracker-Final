@@ -360,7 +360,7 @@ public class Main extends Application implements Serializable {
     
     //Add button clicked
     public void addButtonClicked(){
-    	Event newEvent = new DrinkEvent();
+    	Event newEvent = new Event();
     	newEvent.setType(type);
     	System.out.println(newEvent.getType());
     	if (amountInput.getText().isEmpty()) {
@@ -379,7 +379,7 @@ public class Main extends Application implements Serializable {
     		date = dateInput.getText();
     	}
     	if (descInput.getText().isEmpty()) {
-    		desc = "";
+    		desc = " ";
     	} else {
     		desc = descInput.getText();
     	}
@@ -520,7 +520,7 @@ public class Main extends Application implements Serializable {
 				BufferedReader reader = new BufferedReader(fileReader);
 				while ((text = reader.readLine()) != null) {
 					String[] data = text.split(",");
-					Event newEvent = new DrinkEvent();
+					Event newEvent = new Event();
 					newEvent.setType(data[0]);
 					newEvent.setAmount(Double.parseDouble(data[1]));
 					newEvent.setTime(data[2]);
